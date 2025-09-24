@@ -1,4 +1,7 @@
 <Project>
   <ItemGroup>
   </ItemGroup>
+  <ItemGroup>
+    <PackageVersion Include="FSharp.Core" Version="10.0.100-preview7.25451.107" />
+  </ItemGroup>
 </Project>
