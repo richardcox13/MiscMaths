@@ -22,23 +22,47 @@ module HashadPart1 =
             printfn "Example: 18 is a Hashad number because 1 + 8 = 9 and 18 is divisible by 9."
             printfn "This program will run indefinitely until interrupted."
             let mutable n = 1I
+            let mutable areHashad = 0
+            let mutable stop = false
+            Console.CancelKeyPress.Add(fun ea ->
+                // Using printfn can be split across lines (as main loop interrupts it)
+                Console.WriteLine($"Interrupe! ({ea.SpecialKey})")
+                stop <- true
+                ea.Cancel <- true
+            )
             printfn "Hashad numbers (base 10):"
-            while true do
+            while not stop do
                 if test n then
                     printfn $"{n}"
+                    areHashad <- areHashad + 1
                 n <- n + 1I
 
+            printfn $"Of {n} numbers tests, {areHashad} are Hashad numbers."
             0
-        else if args[0] = "-?" || Char.ToLower(args[0][0]) = 'h' then
+        else if args[0].StartsWith("-h", StringComparison.CurrentCultureIgnoreCase)
+                || args[0] = "-?"
+                || Char.ToLower(args[0][0]) = 'h' then
             printfn "Usage: HashadPart1 [<n> ...]"
             printfn "Without arguments prints all Hashad numbers (base 10) starting from 1."
             printfn "And will run indefinitely until interrupted."
             printfn "With arguments, tests each argument and prints whether it is a Hashad number."
             printfn "Or with \"-h\" shows this help."
-            0
-        else
-            printfn $"Invalid argument: {args[0]}"
-            printfn "Use -? or h for help."
             1
+        else
+            let toTest
+                 = args
+                |> Seq.map bigint.TryParse
+
+            if toTest |> Seq.exists (fun (p, _) -> not p) then
+                eprintfn "Can only test numbers, cannot parse %A" (snd (toTest |> Seq.filter (fun (p, _) -> not p) |> Seq.head))
+                1
+            else
+                for (_, v) in toTest do
+                    let isHashad = test v
+                    if isHashad then
+                        printfn $"{v} is a Hashad number."
+                    else
+                        printfn $"{v} is not a Hashad number."
+                0
         
         
