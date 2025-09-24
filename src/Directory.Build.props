@@ -1,0 +1,45 @@
+<Project>
+  <PropertyGroup>
+    <Deterministic>true</Deterministic>
+    <UseArtifactsOutput>true</UseArtifactsOutput>
+    <DeterministicSourcePaths>true</DeterministicSourcePaths>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Authors>Richard J Cox</Authors>
+    <Company>n/a</Company> <!-- Blank just defaults <Authors> -->
+    <Copyright>Copyright © Richard J Cox 2025</Copyright>
+    <!--Set this to be fixed: to avoid hard to fix compat issues with  -->
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+
+    <BaseVersion>1.0.0</BaseVersion>
+    <BaseVersionAnnotated>$(BaseVersion)</BaseVersionAnnotated>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition=" '$(Configuration)'=='Debug' ">
+      <PropertyGroup>
+        <BaseVersionAnnotatedConfig>$(BaseVersionAnnotated)+debug</BaseVersionAnnotatedConfig>
+        <Version>$(BaseVersion)</Version>
+        <Configuration>DEBUG</Configuration>
+      </PropertyGroup>
+    </When>
+
+    <When Condition=" '$(Configuration)'=='Release' ">
+      <PropertyGroup>
+        <BaseVersionAnnotatedConfig>$(BaseVersionAnnotated)</BaseVersionAnnotatedConfig>
+        <Version>$(BaseVersion)</Version>
+        <Configuration>Production</Configuration>
+      </PropertyGroup>
+    </When>
+  </Choose>
+
+  <PropertyGroup>
+    <FileVersion>$(BaseVersion)</FileVersion>
+    <InformationalVersion>$(BaseVersionAnnotatedConfig)</InformationalVersion>
+  </PropertyGroup>
+
+</Project>
+
