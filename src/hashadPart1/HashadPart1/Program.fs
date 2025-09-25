@@ -1,5 +1,6 @@
 ﻿
 open System
+open System.Text.RegularExpressions
 
 module HashadPart1 =
 
@@ -12,15 +13,20 @@ module HashadPart1 =
     let test n =
         n % (sumdigits n) = 0I
 
+    let numberOrRangeMatcher = Regex(@"^(\d+)(?:\.\.(\d+))?$")
+
+    let showHelp () =
+        printfn "Usage: HashadPart1 [<n> ...]"
+        printfn "Without arguments prints all Hashad numbers (base 10) starting from 1."
+        printfn "And will run indefinitely until interrupted."
+        printfn "With arguments, tests each argument and prints whether it is a Hashad number."
+        printfn "If an argument is of the form <n>..<m> will check the inclusive range."
+        printfn "Or with \"-h\" shows this help."
+
     [<EntryPoint>]
     let main args =
 
         if args.Length = 0 then
-            printfn "Usage: HashadPart1"
-            printfn "Prints all Hashad numbers (base 10) starting from 1."
-            printfn "A Hashad number is an integer that is divisible by the sum of its digits."
-            printfn "Example: 18 is a Hashad number because 1 + 8 = 9 and 18 is divisible by 9."
-            printfn "This program will run indefinitely until interrupted."
             let mutable n = 1I
             let mutable areHashad = 0
             let mutable stop = false
@@ -42,27 +48,24 @@ module HashadPart1 =
         else if args[0].StartsWith("-h", StringComparison.CurrentCultureIgnoreCase)
                 || args[0] = "-?"
                 || Char.ToLower(args[0][0]) = 'h' then
-            printfn "Usage: HashadPart1 [<n> ...]"
-            printfn "Without arguments prints all Hashad numbers (base 10) starting from 1."
-            printfn "And will run indefinitely until interrupted."
-            printfn "With arguments, tests each argument and prints whether it is a Hashad number."
-            printfn "Or with \"-h\" shows this help."
+            showHelp ()
             1
         else
             let toTest
                  = args
-                |> Seq.map bigint.TryParse
+                |> Seq.map (fun a -> a, numberOrRangeMatcher.Match(a))
 
-            if toTest |> Seq.exists (fun (p, _) -> not p) then
-                eprintfn "Can only test numbers, cannot parse %A" (snd (toTest |> Seq.filter (fun (p, _) -> not p) |> Seq.head))
+            if toTest |> Seq.exists (fun (a, m) -> not m.Success) then
+                eprintfn "Can only test numbers, cannot parse %A" (fst (toTest |> Seq.filter (fun (_, m) -> not m.Success) |> Seq.head))
                 1
             else
-                for (_, v) in toTest do
-                    let isHashad = test v
+                for (_, m) in toTest do
+                    let n = bigint.Parse(m.Groups[1].Value)
+                    let isHashad = test n
                     if isHashad then
-                        printfn $"{v} is a Hashad number."
+                        printfn $"{n} is a Hashad number."
                     else
-                        printfn $"{v} is not a Hashad number."
+                        printfn $"{n} is not a Hashad number."
                 0
         
         
