@@ -23,6 +23,35 @@ module HashadPart1 =
         printfn "If an argument is of the form <n>..<m> will check the inclusive range."
         printfn "Or with \"-h\" shows this help."
 
+    let checkSeqForHashads numbers =
+        let mutable checks = 0
+        let mutable hashads = 0
+        for n in numbers do
+            checks <- checks + 1
+            let isHashad = test n
+            if isHashad then
+                printfn $"{n} is a Hashad number."
+                hashads <- hashads + 1
+            else
+                printfn $"{n} is not a Hashad number."
+        (checks, hashads)
+
+    let seqFromArgs (fromArgs: Match seq) =
+        fromArgs
+        |> Seq.collect (fun m ->
+            assert (m.Groups[1].Success)
+            let start = bigint.Parse(m.Groups[1].Value)
+            if m.Groups[2].Success then
+                let finish = bigint.Parse(m.Groups[2].Value)
+                if finish < start then
+                    eprintfn "Range %A..%A is invalid, second number must be greater than or equal to the first." start finish
+                    Seq.empty
+                else
+                    seq { for i in start .. finish -> i }
+            else
+                seq { yield start }
+        )
+
     [<EntryPoint>]
     let main args =
 
@@ -43,7 +72,7 @@ module HashadPart1 =
                     areHashad <- areHashad + 1
                 n <- n + 1I
 
-            printfn $"Of {n} numbers tests, {areHashad} are Hashad numbers."
+            printfn $"Of {n} numbers tested, {areHashad} are Hashad numbers."
             0
         else if args[0].StartsWith("-h", StringComparison.CurrentCultureIgnoreCase)
                 || args[0] = "-?"
@@ -59,13 +88,7 @@ module HashadPart1 =
                 eprintfn "Can only test numbers, cannot parse %A" (fst (toTest |> Seq.filter (fun (_, m) -> not m.Success) |> Seq.head))
                 1
             else
-                for (_, m) in toTest do
-                    let n = bigint.Parse(m.Groups[1].Value)
-                    let isHashad = test n
-                    if isHashad then
-                        printfn $"{n} is a Hashad number."
-                    else
-                        printfn $"{n} is not a Hashad number."
+                let (numberCount, countOfHashads) = toTest |> Seq.map snd |> seqFromArgs |> checkSeqForHashads
+                printfn $"Of {numberCount} numbers tested, {countOfHashads} are Hashad numbers ({100.0 * float countOfHashads / float numberCount:F2}%%)."
+
                 0
-        
-        
