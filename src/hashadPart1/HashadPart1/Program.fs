@@ -36,20 +36,10 @@ module HashadPart1 =
                 printfn $"{n} is not a Hashad number."
         (checks, hashads)
 
-    let seqFromArgs (fromArgs: Match seq) =
-        fromArgs
-        |> Seq.collect (fun m ->
-            assert (m.Groups[1].Success)
-            let start = bigint.Parse(m.Groups[1].Value)
-            if m.Groups[2].Success then
-                let finish = bigint.Parse(m.Groups[2].Value)
-                if finish < start then
-                    eprintfn "Range %A..%A is invalid, second number must be greater than or equal to the first." start finish
-                    Seq.empty
-                else
-                    seq { for i in start .. finish -> i }
-            else
-                seq { yield start }
+    let seqFromArgs (ranges: (bigint * bigint) seq) =
+        ranges
+        |> Seq.collect (fun (start, finish) ->
+            seq { for i in start .. finish -> i }              
         )
 
     [<EntryPoint>]
@@ -85,10 +75,28 @@ module HashadPart1 =
                 |> Seq.map (fun a -> a, numberOrRangeMatcher.Match(a))
 
             if toTest |> Seq.exists (fun (a, m) -> not m.Success) then
-                eprintfn "Can only test numbers, cannot parse %A" (fst (toTest |> Seq.filter (fun (_, m) -> not m.Success) |> Seq.head))
+                eprintfn "Can only test positive numbers, cannot process %A" (fst (toTest |> Seq.filter (fun (_, m) -> not m.Success) |> Seq.head))
                 1
             else
-                let (numberCount, countOfHashads) = toTest |> Seq.map snd |> seqFromArgs |> checkSeqForHashads
+                // Check ranges are valid.... need to parse into (start, end) tuples (bigint * bigint) first
+                let ranges
+                     = toTest
+                    |> Seq.map snd
+                    |> Seq.map (fun m ->
+                        let start = bigint.Parse(m.Groups[1].Value)
+                        start, if m.Groups[2].Success then bigint.Parse(m.Groups[2].Value) else start
+                     )
+                    |> Seq.filter (fun (start, finish) ->
+                        if finish < start then
+                            eprintfn "Range %A..%A is invalid, second number must be greater than or equal to the first, and both most be positive." start finish
+                            false
+                        else
+                            true
+                     )
+                    |> Seq.toArray
+
+                let (numberCount, countOfHashads) = ranges |> seqFromArgs |> checkSeqForHashads
+                printfn ""
                 printfn $"Of {numberCount} numbers tested, {countOfHashads} are Hashad numbers ({100.0 * float countOfHashads / float numberCount:F2}%%)."
 
                 0
