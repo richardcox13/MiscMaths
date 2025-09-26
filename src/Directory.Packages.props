@@ -3,5 +3,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageVersion Include="FSharp.Core" Version="10.0.100-preview7.25451.107" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.0-rc.1.25451.107" />
   </ItemGroup>
 </Project>
