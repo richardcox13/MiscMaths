@@ -15,7 +15,7 @@ let buildCli () =
     let rootCommand
          = RootCommand("Hashad number checker (part 2): check bases")
         |> fun cmd ->
-            cmd.Subcommands.Add(checkCommand())
-            cmd.Subcommands.Add(scanCommand())
+            cmd.Add(checkCommand())
+            cmd.Add(scanCommand())
             cmd
     rootCommand

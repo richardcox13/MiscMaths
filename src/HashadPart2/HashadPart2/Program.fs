@@ -23,7 +23,6 @@ let asyncMain (argv: string array): Task<int> =
 
 [<EntryPoint>]
 let main argv =
-  task {
-    do! Async.SwitchToThreadPool ()
-    return! asyncMain argv
-  } |> Async.AwaitTask |> Async.RunSynchronously
+    task {
+        return! asyncMain argv
+    } |> Async.AwaitTask |> Async.RunSynchronously
