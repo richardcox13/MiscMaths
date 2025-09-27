@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "HashadPart2": {
+      "commandName": "Project",
+      "commandLineArgs": "check 15 16..17 frop"
+    }
+  }
+}
