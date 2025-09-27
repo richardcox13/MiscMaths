@@ -6,7 +6,7 @@ open HashadPart2.NumberRange
 let checkRangeArgument =
     Argument<NumberRange[]>("checkRange")
         |> fun arg -> (
-            arg.Description <- "One or more numbers or ranges of numbers to check (ranges form start..end (inclusive))"
+            arg.Description <- "One or more numbers or ranges of numbers to check (ranges of form \"<n>..<m>\" (inclusive))"
             arg.Arity <- ArgumentArity.OneOrMore
             arg.DefaultValueFactory <- null
             arg.CustomParser <- (fun argRes -> 
@@ -22,6 +22,15 @@ let checkRangeArgument =
                     parsed
                         |> Seq.map (function | Result.Ok v -> v | _ -> failwith "unreachable")
                         |> Seq.toArray
+            )
+            arg.Validators.Add(fun argRes ->
+                let ranges = argRes.GetValueOrDefault<NumberRange[]>()
+                if ranges <> null then
+                    for r in ranges do
+                        match r with
+                        | Range (start, end_) when end_ < start ->
+                            argRes.AddError($"Invalid range {r}: end must be greater than or equal to start")
+                        | _ -> ()
             )
             arg
         )
