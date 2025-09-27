@@ -4,12 +4,20 @@ open System.CommandLine
 
 
 let checkCommand =
-    let checkCommand = Command("check", "Check one or more ranges of numbers are Hashad numbers in given bases")
-    checkCommand
+    Command("check", "Check one or more ranges of numbers are Hashad numbers in given bases")
+        |> fun cmd ->(
+                cmd.SetAction(fun ctx ->
+                    printfn "Check command invoked"
+                    0)
+                cmd)
 
 let scanCommand =
-    let scanCommand = Command("scan", "Scan for Hashad numbers in given bases")
-    scanCommand
+    Command("scan", "Scan for Hashad numbers in given bases")
+        |> fun cmd ->
+                cmd.SetAction(fun ctx ->
+                    printfn "Scan command invoked"
+                    0)
+                cmd
 
 let buildCli () =
     let rootCommand
