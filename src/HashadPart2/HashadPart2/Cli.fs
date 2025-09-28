@@ -19,19 +19,36 @@ let parseNumberRangeArray (argRes: ArgumentResult) : NumberRange[] =
             |> Seq.map (function | Result.Ok v -> v | _ -> failwith "unreachable")
             |> Seq.toArray
 
-let validateNumberRangeArray (argRes: ArgumentResult) : unit =
-    let ranges = argRes.GetValueOrDefault<NumberRange[]>()
+let validateNumberRangeArray (ranges: NumberRange array) : string array =
+    let errors = ResizeArray<string>()
     if ranges <> null then
         for r in ranges do
             match r with
             | Range (start, end_) when start < 2I ->
-                argRes.AddError($"Invalid range {r}: start must be greater than 1")
+                errors.Add($"Invalid range {r}: start must be greater than 1")
             | Range (start, end_) when end_ < start ->
-                argRes.AddError($"Invalid range {r}: end must be greater than or equal to start")
+                errors.Add($"Invalid range {r}: end must be greater than or equal to start")
             | Single n when n < 2I ->
-                argRes.AddError($"Invalid singleton {r}: number must be greater than 1")
+                errors.Add($"Invalid singleton {r}: number must be greater than 1")
             | _ -> ()
+    errors.ToArray()
 
+let makeBasesOption required =
+    Option<NumberRange[]>("--bases")
+        |> fun opt -> (
+            opt.Description <- "One or more bases or ranges of bases (ranges of form \"<n>..<m>\" (inclusive))"
+            opt.Aliases.Add("-b")
+            opt.Arity <- if required then ArgumentArity.OneOrMore else ArgumentArity.ZeroOrMore
+            opt.CustomParser <- parseNumberRangeArray
+            opt.Validators.Add(fun optRes ->
+                let ranges = optRes.GetValueOrDefault<NumberRange[]>()
+                for e in validateNumberRangeArray ranges do
+                    optRes.AddError(e)
+            )
+            opt)
+
+let checkCommandBaesOption = makeBasesOption false
+let scanCommandBasesOption = makeBasesOption true
 
 let checkRangeArgument =
     Argument<NumberRange[]>("checkRange")
@@ -40,7 +57,11 @@ let checkRangeArgument =
             arg.Arity <- ArgumentArity.OneOrMore
             arg.DefaultValueFactory <- null
             arg.CustomParser <- parseNumberRangeArray
-            arg.Validators.Add(validateNumberRangeArray)
+            arg.Validators.Add(fun argRes ->
+                let ranges = argRes.GetValueOrDefault<NumberRange[]>()
+                for e in validateNumberRangeArray ranges do
+                    argRes.AddError(e)
+            )
             arg
         )
 
