@@ -2,6 +2,32 @@ module HashadPart2.Cli
 
 open System.CommandLine
 open HashadPart2.NumberRange
+open System.CommandLine.Parsing
+
+let parseNumberRangeArray (argRes: ArgumentResult) : NumberRange[] =
+    // Do this in stages so errors reported eagerly.
+    let parsed
+         = argRes.Tokens
+        |> Seq.map (fun t -> NumberRange.Parse t.Value)
+        |> Seq.toArray
+    if Seq.exists (fun (r: Result<NumberRange,string>) -> r.IsError) parsed then
+        for err in (parsed |> Seq.choose (function | Result.Error e -> Some e | _ -> None)) do
+            argRes.AddError(err)
+        null
+    else
+        parsed
+            |> Seq.map (function | Result.Ok v -> v | _ -> failwith "unreachable")
+            |> Seq.toArray
+
+let validateNumberRangeArray (argRes: ArgumentResult) : unit =
+    let ranges = argRes.GetValueOrDefault<NumberRange[]>()
+    if ranges <> null then
+        for r in ranges do
+            match r with
+            | Range (start, end_) when end_ < start ->
+                argRes.AddError($"Invalid range {r}: end must be greater than or equal to start")
+            | _ -> ()
+
 
 let checkRangeArgument =
     Argument<NumberRange[]>("checkRange")
@@ -9,29 +35,8 @@ let checkRangeArgument =
             arg.Description <- "One or more numbers or ranges of numbers to check (ranges of form \"<n>..<m>\" (inclusive))"
             arg.Arity <- ArgumentArity.OneOrMore
             arg.DefaultValueFactory <- null
-            arg.CustomParser <- (fun argRes -> 
-                let parsed
-                     = argRes.Tokens
-                    |> Seq.map (fun t -> NumberRange.Parse t.Value)
-                    |> Seq.toArray
-                if Seq.exists (fun (r: Result<NumberRange,string>) -> r.IsError) parsed then
-                    for err in (parsed |> Seq.choose (function | Result.Error e -> Some e | _ -> None)) do
-                        argRes.AddError(err)
-                    null
-                else
-                    parsed
-                        |> Seq.map (function | Result.Ok v -> v | _ -> failwith "unreachable")
-                        |> Seq.toArray
-            )
-            arg.Validators.Add(fun argRes ->
-                let ranges = argRes.GetValueOrDefault<NumberRange[]>()
-                if ranges <> null then
-                    for r in ranges do
-                        match r with
-                        | Range (start, end_) when end_ < start ->
-                            argRes.AddError($"Invalid range {r}: end must be greater than or equal to start")
-                        | _ -> ()
-            )
+            arg.CustomParser <- parseNumberRangeArray
+            arg.Validators.Add(validateNumberRangeArray)
             arg
         )
 
