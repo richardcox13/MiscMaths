@@ -24,8 +24,12 @@ let validateNumberRangeArray (argRes: ArgumentResult) : unit =
     if ranges <> null then
         for r in ranges do
             match r with
+            | Range (start, end_) when start < 2I ->
+                argRes.AddError($"Invalid range {r}: start must be greater than 1")
             | Range (start, end_) when end_ < start ->
                 argRes.AddError($"Invalid range {r}: end must be greater than or equal to start")
+            | Single n when n < 2I ->
+                argRes.AddError($"Invalid singleton {r}: number must be greater than 1")
             | _ -> ()
 
 
