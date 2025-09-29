@@ -36,22 +36,12 @@ let defaultBases (toCheck: bigint array) =
     let min = toCheck |> Array.min
     (min + 1I, max * 2I)
 
-let checkNumberRanges (toCheck: NumberRange array) (bases: NumberRange array) =
-    let toCheck = expandNumberRanges toCheck |> Seq.toArray
-    let bases =
-        if bases.Length = 0 then
-            let (minBase, maxBase) = defaultBases toCheck
-            [| Range (minBase, maxBase) |]
-        else
-            bases
-    let bases = expandBases bases
-    let ss = bases |> Seq.map string |> String.concat ", "
-    Console.WriteLine($"Checking in bases {ss}")
-
+let scanNumberSequence (numbers: bigint seq) (bases: bigint array) =
+    assert(bases.Length > 0)
     let mutable count = 0
     let mutable are = 0
 
-    for n in toCheck do
+    for n in numbers do
         count <- count + 1
         Console.Write($"{n}: ")
         let hashadInBases =
@@ -67,3 +57,18 @@ let checkNumberRanges (toCheck: NumberRange array) (bases: NumberRange array) =
 
     Console.WriteLine()
     Console.WriteLine($"Checked {count} numbers, {are} are Harshad in at least one base ({100.0 * float are / float count:F2}%%)")
+
+
+let checkNumberRanges (toCheck: NumberRange array) (bases: NumberRange array) =
+    let toCheck = expandNumberRanges toCheck |> Seq.toArray
+    let bases =
+        if bases.Length = 0 then
+            let (minBase, maxBase) = defaultBases toCheck
+            [| Range (minBase, maxBase) |]
+        else
+            bases
+    let bases = expandBases bases
+    let ss = bases |> Seq.map string |> String.concat ", "
+    Console.WriteLine($"Checking in bases {ss}")
+
+    scanNumberSequence toCheck bases

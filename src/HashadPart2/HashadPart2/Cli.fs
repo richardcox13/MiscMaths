@@ -1,5 +1,6 @@
 module HashadPart2.Cli
 
+open System
 open System.CommandLine
 open System.CommandLine.Parsing
 open HashadPart2.Calculate
@@ -96,6 +97,7 @@ let scanCommand =
                         printfn "  in bases %s" (bases |> Seq.map (fun s -> s.ToString()) |> String.concat ", ")
                     else
                         printfn "  in default bases"
+                        raise (InvalidOperationException("At least one base or range of bases must be specified"))
                     0)
                 cmd
 
