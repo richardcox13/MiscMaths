@@ -3,7 +3,8 @@
 open System
 open System.Diagnostics
 open System.Threading.Tasks
-open HashadPart2
+open HashadPart2.NumberRange
+
 
 let asyncMain (argv: string array): Task<int> =
     try
