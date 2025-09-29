@@ -98,6 +98,15 @@ let scanCommand =
                     else
                         printfn "  in default bases"
                         raise (InvalidOperationException("At least one base or range of bases must be specified"))
+
+                    let gen () =
+                        seq {
+                            let mutable n = 2I
+                            while true do
+                                yield n
+                                n <- n + 1I
+                        }
+                    scanNumberSequence (gen()) (expandBases bases)
                     0)
                 cmd
 
