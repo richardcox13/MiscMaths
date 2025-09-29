@@ -45,6 +45,8 @@ let checkNumberRanges (toCheck: NumberRange array) (bases: NumberRange array) =
         else
             bases
     let bases = expandBases bases
+    let ss = bases |> Seq.map string |> String.concat ", "
+    Console.WriteLine($"Checking in bases {ss}")
 
     let mutable count = 0
     let mutable are = 0
