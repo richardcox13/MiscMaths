@@ -41,7 +41,15 @@ let scanNumberSequence (numbers: bigint seq) (bases: bigint array) =
     let mutable count = 0
     let mutable are = 0
 
-    for n in numbers do
+    let mutable stop = false
+    Console.CancelKeyPress.Add(fun ea ->
+        // Using printfn can be split across lines (as main loop interrupts it)
+        Console.WriteLine($"Interrupe! ({ea.SpecialKey})")
+        stop <- true
+        ea.Cancel <- true
+    )
+
+    for n in numbers |> Seq.takeWhile (fun _ -> not stop) do
         count <- count + 1
         Console.Write($"{n}: ")
         let hashadInBases =
@@ -72,3 +80,13 @@ let checkNumberRanges (toCheck: NumberRange array) (bases: NumberRange array) =
     Console.WriteLine($"Checking in bases {ss}")
 
     scanNumberSequence toCheck bases
+
+let scanNumbers (bases: NumberRange array) =
+    let gen () =
+        seq {
+            let mutable n = 2I
+            while true do
+                yield n
+                n <- n + 1I
+        }
+    scanNumberSequence (gen()) (expandBases bases)
