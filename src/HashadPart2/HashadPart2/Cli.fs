@@ -38,7 +38,9 @@ let makeBasesOption required =
         |> fun opt -> (
             opt.Description <- "One or more bases or ranges of bases (ranges of form \"<n>..<m>\" (inclusive))"
             opt.Aliases.Add("-b")
-            opt.Arity <- if required then ArgumentArity.OneOrMore else ArgumentArity.ZeroOrMore
+            opt.Arity <- ArgumentArity.OneOrMore
+            opt.Required <- required
+            opt.AllowMultipleArgumentsPerToken <- true
             opt.CustomParser <- parseNumberRangeArray
             opt.Validators.Add(fun optRes ->
                 let ranges = optRes.GetValueOrDefault<NumberRange[]>()
@@ -68,18 +70,30 @@ let checkRangeArgument =
 let checkCommand =
     Command("check", "Check one or more ranges of numbers are Hashad numbers in given bases")
         |> fun cmd ->(
-                cmd.Add(checkRangeArgument) 
+                cmd.Add(checkRangeArgument)
+                cmd.Add(checkCommandBaesOption)
                 cmd.SetAction(fun ctx ->
                     let ranges = ctx.GetValue(checkRangeArgument)
                     printfn "Check command invoked for %s" (ranges |> Seq.map (fun s -> s.ToString()) |> String.concat ", ")
+                    let bases = ctx.GetValue(checkCommandBaesOption)
+                    if bases.Length > 0 then
+                        printfn "  in bases %s" (bases |> Seq.map (fun s -> s.ToString()) |> String.concat ", ")
+                    else
+                        printfn "  in default bases"
                     0)
                 cmd)
 
 let scanCommand =
     Command("scan", "Scan for Hashad numbers in given bases")
         |> fun cmd ->
+                cmd.Add(scanCommandBasesOption)
                 cmd.SetAction(fun ctx ->
                     printfn "Scan command invoked"
+                    let bases = ctx.GetValue(scanCommandBasesOption)
+                    if bases.Length > 0 then
+                        printfn "  in bases %s" (bases |> Seq.map (fun s -> s.ToString()) |> String.concat ", ")
+                    else
+                        printfn "  in default bases"
                     0)
                 cmd
 
