@@ -1,8 +1,10 @@
 module HashadPart2.Cli
 
+open System
 open System.CommandLine
-open HashadPart2.NumberRange
 open System.CommandLine.Parsing
+open HashadPart2.Calculate
+open HashadPart2.NumberRange
 
 let parseNumberRangeArray (argRes: ArgumentResult) : NumberRange[] =
     // Do this in stages so errors reported eagerly.
@@ -80,6 +82,7 @@ let checkCommand =
                         printfn "  in bases %s" (bases |> Seq.map (fun s -> s.ToString()) |> String.concat ", ")
                     else
                         printfn "  in default bases"
+                    checkNumberRanges ranges bases
                     0)
                 cmd)
 
@@ -94,6 +97,8 @@ let scanCommand =
                         printfn "  in bases %s" (bases |> Seq.map (fun s -> s.ToString()) |> String.concat ", ")
                     else
                         printfn "  in default bases"
+                        raise (InvalidOperationException("At least one base or range of bases must be specified"))
+                    scanNumbers bases
                     0)
                 cmd
 
